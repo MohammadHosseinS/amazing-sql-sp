@@ -1,0 +1,28 @@
+// دریافت کلاز های سلکت و ور از یوزر
+
+
+CREATE PROC ListReport
+@Selected VARCHAR(50),
+@ItemName VARCHAR(50), 
+@CustomerPhone VARCHAR(50),
+@Date DATETIME, @Date2 DATETIME
+AS
+BEGIN
+
+SELECT @Selected FROM dbo.Branches 
+LEFT OUTER JOIN dbo.Customers  ON  dbo.Customers.BranchId = branches.Id
+LEFT OUTER JOIN dbo.OrderFiles  ON  dbo.OrderFiles.CustomerId = dbo.Customers.Id
+LEFT OUTER JOIN dbo.OrderFiles_Items ON dbo.OrderFiles.Id = dbo.OrderFiles_Items.OFId
+LEFT OUTER JOIN dbo.Items ON dbo.OrderFiles_Items.ItemsId = dbo.Items.Id
+
+WHERE	
+(@ItemName IS NOT NULL AND dbo.Items.Name = @ItemName) OR
+(@CustomerPhone IS NOT NULL AND dbo.Customers.Phone = @CustomerPhone) OR
+(@Date IS NOT NULL AND @Date2 IS NOT NULL AND dbo.OrderFiles.Date BETWEEN @Date AND @Date2) 
+OR @ItemName IS NULL AND @CustomerPhone IS NULL AND (@Date IS NULL OR @Date2 IS NULL)
+
+GROUP BY dbo.Branches.city, dbo.Branches.Name, dbo.Customers.Name
+ORDER BY SUM(dbo.OrderFiles.TotalPrice) DESC
+
+END
+GO
